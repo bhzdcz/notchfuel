@@ -10,6 +10,8 @@ The idle island hugs the top-center camera notch. Move the pointer onto it and i
 
 Use the bell menu in the expanded island to choose a used-usage alert threshold from 50% to 95%, including 85%, or turn alerts off. NotchFuel uses standard macOS notifications and alerts once per provider usage window and reset cycle.
 
+NotchFuel checks the signed GitHub Releases appcast daily. Sparkle verifies the signed feed and update package, downloads new versions in the background, and installs them automatically when macOS permits. The download button in the island starts a manual update check.
+
 ## Requirements
 
 - Apple-silicon Mac
@@ -26,9 +28,13 @@ swift test
 The release script produces:
 
 - `build/NotchFuel.app`
-- `release/NotchFuel-1.3.0-arm64.dmg`
+- `release/NotchFuel-1.4.0-arm64.dmg`
 
 The local build is ad-hoc signed. A public internet release should be signed with an Apple Developer ID and notarized.
+
+## Publishing an update
+
+Sparkle 2.9.6 is included through Swift Package Manager. Its EdDSA private key stays in the developer's login Keychain; only the public key is committed in `Packaging/Info.plist`. Run `scripts/publish-release.sh` to build the DMG, sign the update and appcast, publish the GitHub Release, and push the updated `appcast.xml`.
 
 ## Privacy
 

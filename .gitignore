@@ -14,3 +14,4 @@ DerivedData/
 *.key
 *.p12
 *.mobileprovision
+sparkle_private_key*

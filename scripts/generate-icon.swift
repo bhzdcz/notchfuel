@@ -14,8 +14,23 @@ let representations: [(String, Int)] = [
 ]
 
 for (name, size) in representations {
-    let image = NSImage(size: NSSize(width: size, height: size))
-    image.lockFocus()
+    guard let bitmap = NSBitmapImageRep(
+        bitmapDataPlanes: nil,
+        pixelsWide: size,
+        pixelsHigh: size,
+        bitsPerSample: 8,
+        samplesPerPixel: 4,
+        hasAlpha: true,
+        isPlanar: false,
+        colorSpaceName: .deviceRGB,
+        bytesPerRow: 0,
+        bitsPerPixel: 0
+    ), let context = NSGraphicsContext(bitmapImageRep: bitmap) else {
+        fatalError("Bitmap render context failed")
+    }
+    bitmap.size = NSSize(width: size, height: size)
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = context
     NSGraphicsContext.current?.imageInterpolation = .high
 
     let inset = CGFloat(size) * 0.055
@@ -41,9 +56,7 @@ for (name, size) in representations {
         NSBezierPath(roundedRect: fill, xRadius: barHeight / 2, yRadius: barHeight / 2).fill()
     }
 
-    image.unlockFocus()
-    guard let tiff = image.tiffRepresentation,
-          let bitmap = NSBitmapImageRep(data: tiff),
-          let png = bitmap.representation(using: .png, properties: [:]) else { fatalError("PNG render failed") }
+    NSGraphicsContext.restoreGraphicsState()
+    guard let png = bitmap.representation(using: .png, properties: [:]) else { fatalError("PNG render failed") }
     try png.write(to: output.appendingPathComponent(name))
 }

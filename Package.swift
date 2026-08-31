@@ -8,10 +8,22 @@ let package = Package(
     products: [
         .executable(name: "NotchFuel", targets: ["NotchFuel"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.9.6")
+    ],
     targets: [
         .executableTarget(
             name: "NotchFuel",
-            path: "Sources/NotchFuel"
+            dependencies: [
+                .product(name: "Sparkle", package: "Sparkle")
+            ],
+            path: "Sources/NotchFuel",
+            linkerSettings: [
+                .unsafeFlags([
+                    "-Xlinker", "-rpath",
+                    "-Xlinker", "@executable_path/../Frameworks"
+                ])
+            ]
         ),
         .testTarget(
             name: "NotchFuelTests",

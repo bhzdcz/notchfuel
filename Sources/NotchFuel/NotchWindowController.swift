@@ -5,14 +5,16 @@ import SwiftUI
 @MainActor
 final class NotchWindowController: NSObject {
     private let store: UsageStore
+    private let updater: AppUpdater
     private let islandPanel: NSPanel
     private let presentation = IslandPresentation()
     private var layout: NotchLayout?
     private var collapseTask: Task<Void, Never>?
     private var screenObserver: NSObjectProtocol?
 
-    init(store: UsageStore) {
+    init(store: UsageStore, updater: AppUpdater) {
         self.store = store
+        self.updater = updater
         islandPanel = IslandPanel(
             contentRect: .zero,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -62,6 +64,7 @@ final class NotchWindowController: NSObject {
         let hostingView = NSHostingView(
             rootView: DynamicIslandView(
                 store: store,
+                updater: updater,
                 presentation: presentation,
                 menuBarHeight: nextLayout.menuBarHeight,
                 onHoverChanged: { [weak self] inside in
@@ -175,6 +178,7 @@ private struct NotchLayout {
 
 private struct DynamicIslandView: View {
     @ObservedObject var store: UsageStore
+    let updater: AppUpdater
     @ObservedObject var presentation: IslandPresentation
     let menuBarHeight: CGFloat
     let onHoverChanged: (Bool) -> Void
@@ -189,7 +193,7 @@ private struct DynamicIslandView: View {
                 .shadow(color: .black.opacity(presentation.isExpanded ? 0.35 : 0), radius: 18, y: 8)
 
             if presentation.isExpanded {
-                ExpandedUsageView(store: store)
+                ExpandedUsageView(store: store, updater: updater)
                     .padding(.top, menuBarHeight + 8)
                     .padding(.horizontal, 14)
                     .padding(.bottom, 10)
@@ -246,6 +250,7 @@ private struct CollapsedNotchCue: View {
 
 private struct ExpandedUsageView: View {
     @ObservedObject var store: UsageStore
+    let updater: AppUpdater
 
     var body: some View {
         VStack(spacing: 8) {
@@ -289,6 +294,16 @@ private struct ExpandedUsageView: View {
             .colorScheme(.dark)
 
             notificationMenu
+
+            Button {
+                updater.checkForUpdates()
+            } label: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.white.opacity(0.75))
+            .help("Check for NotchFuel updates")
 
             Button {
                 Task { await store.refresh() }
