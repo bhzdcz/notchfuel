@@ -288,6 +288,8 @@ private struct ExpandedUsageView: View {
             .frame(width: 152)
             .colorScheme(.dark)
 
+            notificationMenu
+
             Button {
                 Task { await store.refresh() }
             } label: {
@@ -304,6 +306,58 @@ private struct ExpandedUsageView: View {
             .disabled(store.isRefreshing)
         }
         .frame(height: 30)
+    }
+
+    private var notificationMenu: some View {
+        Menu {
+            Text("Notify when usage reaches")
+            Divider()
+
+            Button {
+                store.setNotificationThreshold(nil)
+            } label: {
+                if store.notificationThreshold == nil {
+                    Label("Off", systemImage: "checkmark")
+                } else {
+                    Text("Off")
+                }
+            }
+
+            ForEach(UsageStore.notificationThresholdOptions, id: \.self) { threshold in
+                Button {
+                    store.setNotificationThreshold(threshold)
+                } label: {
+                    if store.notificationThreshold == threshold {
+                        Label("\(threshold)% used", systemImage: "checkmark")
+                    } else {
+                        Text("\(threshold)% used")
+                    }
+                }
+            }
+
+            if store.notificationPermissionDenied {
+                Divider()
+                Text("Notifications are blocked in System Settings")
+            }
+        } label: {
+            Image(systemName: notificationIcon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(store.notificationPermissionDenied ? .orange : .white.opacity(0.75))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(notificationHelp)
+    }
+
+    private var notificationIcon: String {
+        if store.notificationPermissionDenied { return "bell.slash.fill" }
+        return store.notificationThreshold == nil ? "bell" : "bell.fill"
+    }
+
+    private var notificationHelp: String {
+        guard let threshold = store.notificationThreshold else { return "Usage notifications are off" }
+        return "Notify at \(threshold)% used"
     }
 
     private var footer: some View {

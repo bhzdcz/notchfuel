@@ -8,6 +8,8 @@ Your AI runway, in the notch. NotchFuel is a small native macOS app that shows h
 
 The idle island hugs the top-center camera notch. Move the pointer onto it and it smoothly expands downward to reveal segmented fuel gauges for each usage window; move away and it collapses after a short delay. It reuses the sessions maintained by the official command-line tools. Credentials are read-only, stay on the Mac, and are never logged or copied into NotchFuel storage.
 
+Use the bell menu in the expanded island to choose a used-usage alert threshold from 50% to 95%, including 85%, or turn alerts off. NotchFuel uses standard macOS notifications and alerts once per provider usage window and reset cycle.
+
 ## Requirements
 
 - Apple-silicon Mac
@@ -24,7 +26,7 @@ swift test
 The release script produces:
 
 - `build/NotchFuel.app`
-- `release/NotchFuel-1.2.0-arm64.dmg`
+- `release/NotchFuel-1.3.0-arm64.dmg`
 
 The local build is ad-hoc signed. A public internet release should be signed with an Apple Developer ID and notarized.
 

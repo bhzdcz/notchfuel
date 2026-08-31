@@ -6,7 +6,7 @@ BUILD_DIR="$ROOT_DIR/build"
 RELEASE_DIR="$ROOT_DIR/release"
 APP_NAME="NotchFuel"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
-DMG_PATH="$RELEASE_DIR/NotchFuel-1.2.0-arm64.dmg"
+DMG_PATH="$RELEASE_DIR/NotchFuel-1.3.0-arm64.dmg"
 ASSET_CATALOG="$BUILD_DIR/Assets.xcassets"
 STAGING="$BUILD_DIR/dmg"
 

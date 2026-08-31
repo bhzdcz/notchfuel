@@ -3,6 +3,8 @@ import SwiftUI
 
 @MainActor
 final class UsageStore: ObservableObject {
+    static let notificationThresholdOptions = [50, 60, 70, 75, 80, 85, 90, 95]
+
     @Published var usages: [ProviderID: ProviderUsage] = Dictionary(
         uniqueKeysWithValues: ProviderID.allCases.map { ($0, .loading($0)) }
     )
@@ -13,14 +15,21 @@ final class UsageStore: ObservableObject {
     @Published var enabledProviders: Set<ProviderID> {
         didSet { UserDefaults.standard.set(enabledProviders.map(\.rawValue), forKey: "enabledProviders") }
     }
+    @Published private(set) var notificationThreshold: Int?
+    @Published private(set) var notificationPermissionDenied = false
 
     private var refreshTask: Task<Void, Never>?
+    private let notificationManager = UsageNotificationManager()
+    private var deliveredAlertIDs: Set<String>
 
     init() {
         displayMode = DisplayMode(rawValue: UserDefaults.standard.string(forKey: "displayMode") ?? "") ?? .remaining
         let saved = UserDefaults.standard.stringArray(forKey: "enabledProviders") ?? []
         let providers = Set(saved.compactMap(ProviderID.init(rawValue:)))
         enabledProviders = providers.isEmpty ? Set(ProviderID.allCases) : providers
+        let savedThreshold = UserDefaults.standard.integer(forKey: "notificationThreshold")
+        notificationThreshold = savedThreshold > 0 ? savedThreshold : nil
+        deliveredAlertIDs = Set(UserDefaults.standard.stringArray(forKey: "deliveredAlertIDs") ?? [])
     }
 
     deinit { refreshTask?.cancel() }
@@ -46,6 +55,47 @@ final class UsageStore: ObservableObject {
             }
             for await usage in group { usages[usage.provider] = usage }
         }
+        await evaluateUsageAlerts()
+    }
+
+    func setNotificationThreshold(_ threshold: Int?) {
+        notificationThreshold = threshold
+        if let threshold {
+            UserDefaults.standard.set(threshold, forKey: "notificationThreshold")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "notificationThreshold")
+        }
+        deliveredAlertIDs.removeAll()
+        UserDefaults.standard.removeObject(forKey: "deliveredAlertIDs")
+        notificationPermissionDenied = false
+
+        guard threshold != nil else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            let granted = await notificationManager.requestAuthorization()
+            notificationPermissionDenied = !granted
+            if granted { await evaluateUsageAlerts() }
+        }
+    }
+
+    private func evaluateUsageAlerts() async {
+        guard let threshold = notificationThreshold else { return }
+        let alerts = UsageLimitAlertPolicy.alerts(
+            in: usages,
+            threshold: threshold,
+            excluding: deliveredAlertIDs
+        )
+        guard !alerts.isEmpty else { return }
+
+        let authorized = await notificationManager.isAuthorized()
+        notificationPermissionDenied = !authorized
+        guard authorized else { return }
+
+        for alert in alerts {
+            await notificationManager.deliver(alert)
+            deliveredAlertIDs.insert(alert.id)
+        }
+        UserDefaults.standard.set(Array(deliveredAlertIDs), forKey: "deliveredAlertIDs")
     }
 
     func toggle(_ provider: ProviderID) {

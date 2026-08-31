@@ -45,4 +45,34 @@ struct UsageParsersTests {
         #expect(window.percentage(for: .remaining) == 73)
         #expect(window.percentage(for: .used) == 27)
     }
+
+    @Test func createsOneAlertWhenUsageReachesThreshold() {
+        let window = UsageWindow(
+            id: "weekly",
+            label: "Weekly",
+            usedPercent: 86,
+            resetsAt: Date(timeIntervalSince1970: 1_900_000_000)
+        )
+        let usage = ProviderUsage(provider: .openAI, windows: [window], message: nil, refreshedAt: .now)
+        let alerts = UsageLimitAlertPolicy.alerts(in: [.openAI: usage], threshold: 85, excluding: [])
+
+        #expect(alerts.count == 1)
+        #expect(alerts[0].title == "OpenAI usage reached 86%")
+        #expect(alerts[0].body.contains("14% fuel remaining"))
+    }
+
+    @Test func doesNotRepeatDeliveredOrBelowThresholdAlerts() {
+        let low = UsageWindow(id: "session", label: "Session", usedPercent: 84)
+        let high = UsageWindow(id: "weekly", label: "Weekly", usedPercent: 91)
+        let usage = ProviderUsage(provider: .anthropic, windows: [low, high], message: nil, refreshedAt: .now)
+        let initial = UsageLimitAlertPolicy.alerts(in: [.anthropic: usage], threshold: 85, excluding: [])
+        let repeated = UsageLimitAlertPolicy.alerts(
+            in: [.anthropic: usage],
+            threshold: 85,
+            excluding: Set(initial.map(\.id))
+        )
+
+        #expect(initial.count == 1)
+        #expect(repeated.isEmpty)
+    }
 }

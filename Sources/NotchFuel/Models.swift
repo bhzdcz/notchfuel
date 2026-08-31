@@ -103,6 +103,41 @@ struct ProviderUsage: Identifiable, Equatable, Sendable {
     }
 }
 
+struct UsageLimitAlert: Equatable, Sendable {
+    let id: String
+    let provider: ProviderID
+    let window: UsageWindow
+
+    var title: String {
+        "\(provider.name) usage reached \(Int(window.usedPercent.rounded()))%"
+    }
+
+    var body: String {
+        let remaining = Int((100 - window.usedPercent).rounded())
+        let reset = window.resetText.map { ". \($0.capitalized)" } ?? ""
+        return "\(window.label) has \(remaining)% fuel remaining\(reset)."
+    }
+}
+
+enum UsageLimitAlertPolicy {
+    static func alerts(
+        in usages: [ProviderID: ProviderUsage],
+        threshold: Int,
+        excluding deliveredIDs: Set<String>
+    ) -> [UsageLimitAlert] {
+        usages.values.flatMap { usage in
+            usage.windows.compactMap { window in
+                guard window.usedPercent >= Double(threshold) else { return nil }
+                let cycle = window.resetsAt.map { String(Int($0.timeIntervalSince1970)) } ?? "rolling"
+                let id = "notchfuel-\(usage.provider.rawValue)-\(window.id)-\(cycle)-\(threshold)"
+                guard !deliveredIDs.contains(id) else { return nil }
+                return UsageLimitAlert(id: id, provider: usage.provider, window: window)
+            }
+        }
+        .sorted { $0.window.usedPercent > $1.window.usedPercent }
+    }
+}
+
 enum UsageClientError: LocalizedError, Sendable {
     case notSignedIn(ProviderID)
     case expired(ProviderID)
