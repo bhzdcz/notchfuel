@@ -2,6 +2,8 @@
 
 Your AI runway, in the notch. NotchFuel is a small native macOS app that shows how much AI usage is used or remaining beside the MacBook camera cutout for:
 
+![NotchFuel showing Anthropic, OpenAI, and Grok usage beside the MacBook notch](docs/assets/notchfuel-island.png)
+
 - Anthropic / Claude Code
 - OpenAI / Codex
 - Grok CLI
