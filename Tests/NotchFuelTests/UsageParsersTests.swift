@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import TopNotchAI
+@testable import NotchFuel
 
 struct UsageParsersTests {
     @Test func parsesCurrentAnthropicLimits() throws {

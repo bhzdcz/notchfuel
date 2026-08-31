@@ -5,17 +5,17 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>TopNotchAI</string>
+    <string>NotchFuel</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
-    <string>app.topnotch.ai</string>
+    <string>com.airoweb.notchfuel</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>TopNotch AI</string>
+    <string>NotchFuel</string>
     <key>CFBundleDisplayName</key>
-    <string>TopNotch AI</string>
+    <string>NotchFuel</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

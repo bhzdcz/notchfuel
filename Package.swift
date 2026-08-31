@@ -3,20 +3,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "TopNotchAI",
+    name: "NotchFuel",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "TopNotchAI", targets: ["TopNotchAI"])
+        .executable(name: "NotchFuel", targets: ["NotchFuel"])
     ],
     targets: [
         .executableTarget(
-            name: "TopNotchAI",
-            path: "Sources/TopNotchAI"
+            name: "NotchFuel",
+            path: "Sources/NotchFuel"
         ),
         .testTarget(
-            name: "TopNotchAITests",
-            dependencies: ["TopNotchAI"],
-            path: "Tests/TopNotchAITests"
+            name: "NotchFuelTests",
+            dependencies: ["NotchFuel"],
+            path: "Tests/NotchFuelTests"
         )
     ]
 )

@@ -46,6 +46,10 @@ enum DisplayMode: String, CaseIterable, Identifiable, Sendable {
     case used = "Used"
 
     var id: String { rawValue }
+
+    var metricSuffix: String {
+        self == .remaining ? "fuel" : "used"
+    }
 }
 
 struct UsageWindow: Identifiable, Equatable, Sendable {

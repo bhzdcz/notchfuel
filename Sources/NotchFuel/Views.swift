@@ -1,6 +1,58 @@
 import AppKit
 import SwiftUI
 
+struct FuelGauge: View {
+    let percentage: Double
+    let color: Color
+    var segments = 10
+    var height: CGFloat = 6
+    var trackColor: Color = .white.opacity(0.09)
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(0..<segments, id: \.self) { index in
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                            .fill(trackColor)
+                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                            .fill(color.gradient)
+                            .frame(width: proxy.size.width * fill(for: index))
+                    }
+                }
+            }
+        }
+        .frame(height: height)
+        .animation(.spring(response: 0.38, dampingFraction: 0.86), value: percentage)
+    }
+
+    private func fill(for index: Int) -> Double {
+        let segmentSize = 100 / Double(segments)
+        let segmentStart = Double(index) * segmentSize
+        return min(1, max(0, (percentage - segmentStart) / segmentSize))
+    }
+}
+
+struct FuelBrandMark: View {
+    var size: CGFloat = 26
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 1.5) {
+            ForEach([0.42, 0.68, 1.0], id: \.self) { level in
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(.black.opacity(0.78))
+                    .frame(width: size * 0.13, height: size * 0.48 * level)
+            }
+        }
+        .frame(width: size, height: size)
+        .background(
+            Color(red: 0.95, green: 0.58, blue: 0.20).gradient,
+            in: RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
+        )
+        .accessibilityHidden(true)
+    }
+}
+
 struct DashboardView: View {
     @ObservedObject var store: UsageStore
     @State private var showSources = false
@@ -33,10 +85,11 @@ struct DashboardView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
+                FuelBrandMark(size: 30)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("TopNotch AI")
+                    Text("NotchFuel")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    Text("Your AI headroom, at a glance")
+                    Text("Your AI runway, at a glance")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -74,7 +127,7 @@ struct DashboardView: View {
                 Image(systemName: "power")
             }
             .buttonStyle(.borderless)
-            .help("Quit TopNotch AI")
+            .help("Quit NotchFuel")
         }
         .font(.caption2)
         .foregroundStyle(.secondary)
@@ -170,19 +223,15 @@ private struct MetricRow: View {
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
-                Text("\(Int(value.rounded()))% \(mode == .used ? "used" : "left")")
+                Text("\(Int(value.rounded()))% \(mode.metricSuffix)")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .monospacedDigit()
             }
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.primary.opacity(0.08))
-                    Capsule()
-                        .fill(provider.color.gradient)
-                        .frame(width: proxy.size.width * value / 100)
-                }
-            }
-            .frame(height: 6)
+            FuelGauge(
+                percentage: value,
+                color: provider.color,
+                trackColor: .primary.opacity(0.08)
+            )
             .accessibilityLabel("\(window.label), \(Int(value.rounded())) percent \(mode.rawValue.lowercased())")
         }
     }

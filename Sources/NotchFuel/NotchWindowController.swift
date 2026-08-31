@@ -207,7 +207,7 @@ private struct DynamicIslandView: View {
         .onHover(perform: onHoverChanged)
         .animation(.spring(response: 0.42, dampingFraction: 0.82), value: presentation.isExpanded)
         .accessibilityElement(children: presentation.isExpanded ? .contain : .ignore)
-        .accessibilityLabel(presentation.isExpanded ? "TopNotch AI usage" : "Hover to show AI usage")
+        .accessibilityLabel(presentation.isExpanded ? "NotchFuel usage" : "Hover to show AI usage")
     }
 
     private var islandShape: UnevenRoundedRectangle {
@@ -266,10 +266,12 @@ private struct ExpandedUsageView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
+            FuelBrandMark()
+
             VStack(alignment: .leading, spacing: 1) {
-                Text("TopNotch AI")
+                Text("NotchFuel")
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                Text("AI usage")
+                Text("Your AI runway")
                     .font(.system(size: 9, weight: .medium))
                     .foregroundStyle(.white.opacity(0.48))
             }
@@ -316,7 +318,7 @@ private struct ExpandedUsageView: View {
                 Image(systemName: "power")
             }
             .buttonStyle(.plain)
-            .help("Quit TopNotch AI")
+            .help("Quit NotchFuel")
         }
         .font(.system(size: 9, weight: .medium))
         .foregroundStyle(.white.opacity(0.45))
@@ -376,21 +378,13 @@ private struct CompactMetric: View {
                 Text(window.label)
                     .foregroundStyle(.white.opacity(0.48))
                 Spacer(minLength: 2)
-                Text("\(Int(percentage.rounded()))%")
+                Text("\(Int(percentage.rounded()))% \(mode.metricSuffix)")
                     .fontWeight(.semibold)
                     .monospacedDigit()
             }
             .font(.system(size: 9, weight: .medium))
 
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.10))
-                    Capsule()
-                        .fill(provider.color.gradient)
-                        .frame(width: proxy.size.width * percentage / 100)
-                }
-            }
-            .frame(height: 5)
+            FuelGauge(percentage: percentage, color: provider.color, segments: 8, height: 5)
 
             Text(window.resetText ?? "No reset time")
                 .font(.system(size: 8, weight: .medium))
